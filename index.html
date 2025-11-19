@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>윤릴라 진화 퀘스트 – 궁극 버전</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "맑은 고딕", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #c5e1a5 0, #f1f8e9 40%, #ffffff 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game {
+            width: 100%;
+            max-width: 520px;
+            background-color: #ffffff;
+            border-radius: 26px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+            padding: 16px 16px 18px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            font-size: 11px;
+            background-color: #7cb342;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 999px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        }
+
+        /* ===== B 타입: 큰 히어로 이미지 ===== */
+        .hero {
+            position: relative;
+            margin-bottom: 12px;
+            border-radius: 20px;
+            overflow: hidden;
+            height: 210px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+        }
+
+        .hero img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 10px 12px;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .hero-title {
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .hero-sub {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .hero-pill {
+            font-size: 11px;
+            background-color: rgba(255,255,255,0.12);
+            padding: 4px 8px;
+            border-radius: 999px;
+        }
+
+        /* ===== A 타입: 클릭 가능한 아바타 + 타이틀 라인 ===== */
+        .header-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .avatar {
+            width: 76px;
+            height: 76px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: transform 0.08s;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: translateY(-6px); /* 얼굴 쪽으로 살짝 당겨보기 */
+        }
+
+        .avatar:active {
+            transform: scale(0.96);
+        }
+
+        .avatar-label {
+            position: absolute;
+            bottom: 4px;
+            right: 6px;
+            font-size: 10px;
+            background-color: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 999px;
+        }
+
+        .title-wrap {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title-main {
+            font-size: 19px;
+            font-weight: 800;
+            color: #33691e;
+        }
+
+        .title-sub {
+            font-size: 12px;
+            color: #558b2f;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: #9e9e9e;
+            margin-top: 2px;
+        }
+
+        /* ===== 상태, 게이지 ===== */
+        .status-box {
+            background-color: #f1f8e9;
+            border-radius: 16px;
+            padding: 10px 11px 9px;
+            margin-bottom: 10px;
+            border: 1px solid #c5e1a5;
+            font-size: 12px;
+            color: #455a64;
+        }
+
+        .status-line {
+            margin-bottom: 4px;
+        }
+
+        .status-line strong {
+            color: #33691e;
+        }
+
+        .progress-wrap {
+            margin-top: 4px;
+        }
+
+        .progress-label {
+            font-size: 11px;
+            color: #78909c;
+            margin-bottom: 2px;
+        }
+
+        .progress-bar-bg {
+            background-color: #e0e0e0;
+            border-radius: 999px;
+            overflow: hidden;
+            height: 8px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #aed581, #7cb342);
+            transition: width 0.25s;
+        }
+
+        .progress-bar.super {
+            background: linear-gradient(90deg, #ffe082, #ffb300);
+        }
+
+        /* ===== 퀘스트 카드 ===== */
+        .quests {
+            background-color: #fafafa;
+            border-radius: 16px;
+            padding: 10px 11px 9px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 10px;
+        }
+
+        .quests-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #455a64;
+            margin-bottom: 4px;
+        }
+
+        .quest {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+
+        .quest-check {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid #b0bec5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #fff;
+            background-color: #eceff1;
+        }
+
+        .quest-check.done {
+            background-color: #8bc34a;
+            border-color: #689f38;
+        }
+
+        .quest-text {
+            flex: 1;
+            color: #546e7a;
+        }
+
+        .quest-text span {
+            color: #33691e;
+            font-weight: 600;
+        }
+
+        /* ===== 버튼들 ===== */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 7px 12px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+            transition: filter 0.15s, transform 0.05s, box-shadow 0.15s;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .btn-main {
+            background-color: #8bc34a;
+            color: #1b5e20;
+            font-weight: 700;
+            box-shadow: 0 3px 8px rgba(139,195,74,0.45);
+        }
+
+        .btn-main:hover {
+            filter: brightness(1.03);
+        }
+
+        .btn-sub {
+            background-color: #e8f5e9;
+            color: #33691e;
+        }
+
+        .btn-ghost {
+            background-color: #fafafa;
+            color: #546e7a;
+            border: 1px solid #d0d0d0;
+        }
+
+        /* ===== C 타입: 인간 vs 고릴라 비교 갤러리 ===== */
+        .gallery {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .gallery-card {
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+            background-color: #fdfdfd;
+            position: relative;
+            height: 120px;
+        }
+
+        .gallery-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-label {
+            position: absolute;
+            left: 6px;
+            bottom: 4px;
+            font-size: 11px;
+            background-color: rgba(0,0,0,0.65);
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 999px;
+        }
+
+        .gallery-mask {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(2px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #757575;
+        }
+
+        .gallery-card.gorilla-evolved .gallery-mask {
+            display: none;
+        }
+
+        /* ===== 로그 & 엔딩 ===== */
+        .log {
+            background-color: #ffffff;
+            border-radius: 14px;
+            padding: 8px 10px 6px;
+            border: 1px dashed #cfd8dc;
+            font-size: 11px;
+            color: #607d8b;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        .log-title {
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .log-line {
+            margin-bottom: 2px;
+        }
+
+        .log-line span {
+            color: #33691e;
+        }
+
+        .ending {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #2e7d32;
+            font-weight: 700;
+            display: none;
+        }
+
+        /* ===== 1000 스택용 초거대 고릴라 ===== */
+        .mega-gorilla {
+            margin-top: 10px;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 2px solid #ffb300;
+            background: #fff8e1;
+            padding: 6px 6px 8px;
+            display: none;
+        }
+
+        .mega-gorilla img {
+            width: 100%;
+            max-height: 260px;
+            object-fit: cover;
+            border-radius: 14px;
+        }
+
+        .mega-caption {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #ff6f00;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* ===== 효과 ===== */
+        .sparkle {
+            position: absolute;
+            font-size: 18px;
+            pointer-events: none;
+            animation: pop 0.6s ease-out forwards;
+        }
+
+        @keyframes pop {
+            0%   { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-24px); opacity: 0; }
+        }
+
+        @keyframes evolve-bg {
+            0%   { background: radial-gradient(circle at top, #c5e1a5 0, #f1f8e9 40%, #ffffff 100%); }
+            100% { background: radial-gradient(circle at top, #ffe082 0, #ffe0b2 40%, #fff8e1 100%); }
+        }
+
+        .evolved-body {
+            animation: evolve-bg 0.7s forwards;
+        }
+
+        .shake {
+            animation: shake 0.35s ease-out;
+        }
+
+        @keyframes shake {
+            0%   { transform: translateX(0); }
+            25%  { transform: translateX(-3px); }
+            50%  { transform: translateX(3px); }
+            75%  { transform: translateX(-2px); }
+            100% { transform: translateX(0); }
+        }
+
+        @media (max-width: 540px) {
+            .game {
+                margin: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game" id="gameCard">
+    <div class="badge" id="badgeText">인간 모드 의심 중</div>
+
+    <!-- B: 상단 큰 사진 -->
+    <div class="hero">
+        <!-- 여기 src="yoonho.jpg" / "gorilla.jpg" 두 파일 필요 -->
+        <img id="heroImg" src="yoonho.jpg" alt="윤호 메인 사진">
+        <div class="hero-overlay">
+            <div>
+                <div class="hero-title" id="heroTitle">인간(?) 윤호 관찰 기록</div>
+                <div class="hero-sub" id="heroSub">지금은 인간인 척 하지만… 뭔가 수상하다</div>
+            </div>
+            <div class="hero-pill" id="heroPill">HUMAN MODE</div>
+        </div>
+    </div>
+
+    <!-- A: 클릭 가능한 아바타 -->
+    <div class="header-row">
+        <div class="avatar" id="avatar">
+            <img id="avatarImg" src="yoonho.jpg" alt="윤호 아바타">
+            <div class="avatar-label" id="avatarLabel">인간(?) 윤호</div>
+        </div>
+        <div class="title-wrap">
+            <div class="title-main">윤릴라 진화 퀘스트</div>
+            <div class="title-sub">아바타를 클릭하고 버튼을 눌러 진짜 정체를 밝혀보자</div>
+            <div class="hint">※ 아바타 클릭 + 바나나/우가우가 버튼으로 게이지를 채우면 진화합니다.</div>
+        </div>
+    </div>
+
+    <!-- 상태, 게이지 -->
+    <div class="status-box">
+        <div class="status-line">
+            <strong>현재 상태 :</strong>
+            <span id="statusText">인간 모드(인 척) 유지 중...</span>
+        </div>
+        <div class="status-line">
+            <strong>진화 게이지 :</strong>
+            <span id="gaugeText">0 / 100</span>
+        </div>
+        <div class="progress-wrap">
+            <div class="progress-label">1단계 진화 (윤릴라 모드)</div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
+        <div class="progress-wrap" style="margin-top:6px;">
+            <div class="progress-label">2단계 궁극 진화 – 바나나 생각 + 우가우가 합 1000번</div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar super" id="superBar"></div>
+            </div>
+            <div style="font-size:11px; color:#757575; margin-top:2px;">
+                슈퍼 윤릴라 게이지 : <span id="superText">0 / 1000</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 퀘스트 목록 -->
+    <div class="quests">
+        <div class="quests-title">퀘스트 목록</div>
+        <div class="quest">
+            <div class="quest-check" id="q1Check">○</div>
+            <div class="quest-text" id="q1Text">
+                <span>퀘스트 1:</span> 인간인 척 하는 윤호 아바타를 <b>10번</b> 클릭하기
+            </div>
+        </div>
+        <div class="quest">
+            <div class="quest-check" id="q2Check">○</div>
+            <div class="quest-text" id="q2Text">
+                <span>퀘스트 2:</span> <b>바나나 생각하기</b> 버튼을 <b>3번</b> 이상 누르기
+            </div>
+        </div>
+        <div class="quest">
+            <div class="quest-check" id="q3Check">○</div>
+            <div class="quest-text" id="q3Text">
+                <span>퀘스트 3:</span> <b>우가우가 외치기</b> 버튼을 최소 <b>1번</b> 누르기
+            </div>
+        </div>
+    </div>
+
+    <!-- 버튼 영역 -->
+    <div class="controls">
+        <button class="btn-main" type="button" id="bananaBtn">바나나 생각하기</button>
+        <button class="btn-sub" type="button" id="ugaBtn">우가우가 외치기</button>
+        <button class="btn-ghost" type="button" id="resetBtn">다시 인간으로 돌리기</button>
+    </div>
+
+    <!-- C: 인간 vs 고릴라 비교 갤러리 -->
+    <div class="gallery">
+        <div class="gallery-card" id="humanCard">
+            <img src="yoonho.jpg" alt="인간 윤호">
+            <div class="gallery-label">인간 모드 – 윤호</div>
+        </div>
+        <div class="gallery-card" id="gorillaCard">
+            <img src="gorilla.jpg" alt="고릴라 윤릴라">
+            <div class="gallery-label">진화 후 – 윤릴라</div>
+            <div class="gallery-mask" id="gorillaMask">
+                진화 전 / 잠금 상태 🔒
+            </div>
+        </div>
+    </div>
+
+    <!-- 로그 + 엔딩 텍스트 -->
+    <div class="log" id="logBox">
+        <div class="log-title">로그</div>
+    </div>
+
+    <div class="ending" id="endingText">
+        1단계 윤릴라 진화 완료! 🦍  
+        이제 계속 바나나와 우가우가를 외쳐서 궁극 윤릴라를 소환해보세요.
+    </div>
+
+    <!-- 1000 스택 달성 시 뜨는 초거대 고릴라 -->
+    <div class="mega-gorilla" id="megaGorilla">
+        <img src="gorilla.jpg" alt="슈퍼 윤릴라">
+        <div class="mega-caption">
+            ★ 궁극 윤릴라 소환 완료! ★<br>
+            바나나 & 우가우가 1000스택을 채운 자만 볼 수 있는 진짜 고릴라 모드
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== 상태 변수 =====
+    let avatarClickCount = 0;
+    let bananaCount = 0;
+    let ugaCount = 0;
+
+    let evolved = false;      // 1단계 진화 여부
+    let megaEvolved = false;  // 1000스택 궁극 진화 여부
+
+    // ===== DOM 요소 =====
+    const gameCard   = document.getElementById("gameCard");
+    const badgeText  = document.getElementById("badgeText");
+
+    const heroImg    = document.getElementById("heroImg");
+    const heroTitle  = document.getElementById("heroTitle");
+    const heroSub    = document.getElementById("heroSub");
+    const heroPill   = document.getElementById("heroPill");
+
+    const avatar     = document.getElementById("avatar");
+    const avatarImg  = document.getElementById("avatarImg");
+    const avatarLabel= document.getElementById("avatarLabel");
+
+    const statusText = document.getElementById("statusText");
+    const gaugeText  = document.getElementById("gaugeText");
+    const progressBar= document.getElementById("progressBar");
+
+    const superText  = document.getElementById("superText");
+    const superBar   = document.getElementById("superBar");
+
+    const q1Check    = document.getElementById("q1Check");
+    const q2Check    = document.getElementById("q2Check");
+    const q3Check    = document.getElementById("q3Check");
+
+    const gorillaCard= document.getElementById("gorillaCard");
+    const gorillaMask= document.getElementById("gorillaMask");
+
+    const logBox     = document.getElementById("logBox");
+    const endingText = document.getElementById("endingText");
+    const megaGorilla= document.getElementById("megaGorilla");
+
+    const bananaBtn  = document.getElementById("bananaBtn");
+    const ugaBtn     = document.getElementById("ugaBtn");
+    const resetBtn   = document.getElementById("resetBtn");
+
+    // 퀘스트 목표
+    const Q1_GOAL = 10;
+    const Q2_GOAL = 3;
+    const Q3_GOAL = 1;
+    const SUPER_GOAL = 1000;
+
+    // ===== 공통 함수 =====
+    function addLog(text) {
+        const div = document.createElement("div");
+        div.className = "log-line";
+        div.innerHTML = "▶ <span>" + text + "</span>";
+        logBox.appendChild(div);
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function sparkle(x, y) {
+        const span = document.createElement("span");
+        span.className = "sparkle";
+        span.textContent = "✨";
+        span.style.left = x + "px";
+        span.style.top = y + "px";
+        gameCard.appendChild(span);
+        setTimeout(() => span.remove(), 600);
+    }
+
+    function shake(elem) {
+        elem.classList.remove("shake");
+        void elem.offsetWidth;
+        elem.classList.add("shake");
+        setTimeout(() => elem.classList.remove("shake"), 400);
+    }
+
+    // 1단계 진화 게이지
+    function updateGauge() {
+        if (evolved) {
+            gaugeText.textContent = "100 / 100";
+            progressBar.style.width = "100%";
+            return;
+        }
+
+        let percent = 0;
+        // 각 퀘스트 진행도 비율로 합산 (대략적인 느낌만)
+        percent += Math.min(avatarClickCount / Q1_GOAL, 1) * (100 / 3);
+        percent += Math.min(bananaCount / Q2_GOAL, 1) * (100 / 3);
+        percent += Math.min(ugaCount / Q3_GOAL, 1) * (100 / 3);
+
+        percent = Math.floor(percent);
+        if (percent > 100) percent = 100;
+
+        gaugeText.textContent = percent + " / 100";
+        progressBar.style.width = percent + "%";
+
+        // 퀘스트 체크 UI
+        if (avatarClickCount >= Q1_GOAL) {
+            q1Check.textContent = "✔";
+            q1Check.classList.add("done");
+        }
+        if (bananaCount >= Q2_GOAL) {
+            q2Check.textContent = "✔";
+            q2Check.classList.add("done");
+        }
+        if (ugaCount >= Q3_GOAL) {
+            q3Check.textContent = "✔";
+            q3Check.classList.add("done");
+        }
+
+        // 1단계 진화
+        if (percent >= 100 && !evolved) {
+            evolveToGorilla();
+        } else if (!evolved) {
+            statusText.textContent = "인간 모드(인 척)지만, 점점 정체가 드러나고 있습니다...";
+        }
+    }
+
+    // 바나나 + 우가우가 1000 스택 게이지
+    function updateSuperGauge() {
+        const total = bananaCount + ugaCount;
+        const percent = Math.min(100, Math.floor(total / SUPER_GOAL * 100));
+        superText.textContent = total + " / " + SUPER_GOAL;
+        superBar.style.width = percent + "%";
+
+        if (percent >= 100 && !megaEvolved) {
+            megaEvolved = true;
+            megaGorilla.style.display = "block";
+            addLog("★ 바나나 + 우가우가 1000스택 달성! 궁극 윤릴라가 소환되었습니다!");
+            shake(megaGorilla);
+        }
+    }
+
+    function evolveToGorilla() {
+        evolved = true;
+
+        // 아바타/히어로 이미지 모두 고릴라로 변경
+        avatarImg.src = "gorilla.jpg";
+        heroImg.style.opacity = "0";
+        heroImg.style.transform = "scale(1.05)";
+        setTimeout(() => {
+            heroImg.src = "gorilla.jpg";
+            heroImg.style.opacity = "1";
+            heroImg.style.transform = "scale(1)";
+        }, 250);
+
+        avatarLabel.textContent = "윤릴라 모드";
+        heroTitle.textContent = "윤릴라 진화 완료";
+        heroSub.textContent = "이제 인간이라고 우기기엔 너무 늦었습니다.";
+        heroPill.textContent = "GORILLA MODE";
+
+        badgeText.textContent = "윤릴라 모드 ON";
+        statusText.textContent = "정체가 들켰다! 윤릴라로 진화했습니다 🦍";
+        document.body.classList.add("evolved-body");
+
+        // 갤러리에서 고릴라 카드 잠금 해제
+        gorillaCard.classList.add("gorilla-evolved");
+        gorillaMask.textContent = "진화 완료! 🔓";
+
+        endingText.style.display = "block";
+
+        addLog("윤호의 진짜 모습이 드러났다… 윤릴라 모드 돌입!");
+        shake(avatar);
+    }
+
+    function resetGame() {
+        avatarClickCount = 0;
+        bananaCount = 0;
+        ugaCount = 0;
+        evolved = false;
+        megaEvolved = false;
+
+        avatarImg.src = "yoonho.jpg";
+        heroImg.src   = "yoonho.jpg";
+
+        avatarLabel.textContent = "인간(?) 윤호";
+        heroTitle.textContent = "인간(?) 윤호 관찰 기록";
+        heroSub.textContent   = "지금은 인간인 척 하지만… 뭔가 수상하다";
+        heroPill.textContent  = "HUMAN MODE";
+
+        statusText.textContent = "인간 모드(인 척) 유지 중...";
+        badgeText.textContent  = "인간 모드 의심 중";
+
+        document.body.classList.remove("evolved-body");
+        gaugeText.textContent = "0 / 100";
+        progressBar.style.width = "0%";
+
+        superText.textContent = "0 / " + SUPER_GOAL;
+        superBar.style.width = "0%";
+
+        // 퀘스트 체크 초기화
+        [q1Check, q2Check, q3Check].forEach(el => {
+            el.textContent = "○";
+            el.classList.remove("done");
+        });
+
+        // 갤러리 잠금 초기화
+        gorillaCard.classList.remove("gorilla-evolved");
+        gorillaMask.textContent = "진화 전 / 잠금 상태 🔒";
+
+        // 초고릴라 숨김
+        megaGorilla.style.display = "none";
+
+        addLog("게임을 초기화했습니다. 다시 인간인 척하는 윤호부터 시작합니다.");
+    }
+
+    // ===== 이벤트 바인딩 =====
+    avatar.addEventListener("click", (e) => {
+        avatarClickCount++;
+        const rect = gameCard.getBoundingClientRect();
+        sparkle(e.clientX - rect.left, e.clientY - rect.top);
+        addLog("윤호 아바타 클릭! (" + avatarClickCount + " / " + Q1_GOAL + ")");
+        updateGauge();
+    });
+
+    bananaBtn.addEventListener("click", () => {
+        bananaCount++;
+        addLog("윤호가 바나나를 생각하기 시작했다… (" + bananaCount + "회)");
+        updateGauge();
+        updateSuperGauge();
+    });
+
+    ugaBtn.addEventListener("click", () => {
+        ugaCount++;
+        addLog("우가우가 외침! (" + ugaCount + "회)");
+        updateGauge();
+        updateSuperGauge();
+    });
+
+    resetBtn.addEventListener("click", () => {
+        resetGame();
+    });
+
+    // 처음 안내 로그
+    addLog("게임 시작! 아바타를 클릭하고, 바나나/우가우가 버튼을 눌러 윤릴라를 진화시켜 보세요.");
+    addLog("※ 바나나 생각하기 + 우가우가 외치기 합계 1000번 달성 시, 초거대 고릴라 모드가 열립니다.");
+</script>
+
+</body>
+</html>
